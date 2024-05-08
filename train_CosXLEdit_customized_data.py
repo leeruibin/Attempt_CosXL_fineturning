@@ -733,22 +733,22 @@ def main():
         eps=args.adam_epsilon,
     )
 
-    # Get the datasets: you can either provide your own training and evaluation files (see below)
-    # or specify a Dataset from the hub (the dataset will be downloaded automatically from the datasets Hub).
-
-    # data_mapper = {
-    #     'input_image': ['/home/ruibin_li/Storage/CosXL_edit/tmp/remove_data/train/000_source.jpg',
-    #                     '/home/ruibin_li/Storage/CosXL_edit/tmp/remove_data/train/000_source.jpg'],
-    #     'edit_prompt': ['change to red', 'change to red'],
-    #     'edited_image': ['/home/ruibin_li/Storage/CosXL_edit/tmp/remove_data/train/001_source.jpg',
-    #                      '/home/ruibin_li/Storage/CosXL_edit/tmp/remove_data/train/001_source.jpg']
-    # }
-    meta_folder = os.path.dirname(args.meta_path)
-    dataset_dict = meta_to_dataset_format(args.meta_path,meta_folder)
-
-    # dataset_dict = csv_to_dataset_format("tmp/remove_data/metadata.csv")
-
-    dataset = Dataset.from_dict(dataset_dict).cast_column("input_image", Image()).cast_column("edited_image", Image())
+    if args.dataset_name is not None:
+    # Downloading and loading a dataset from the hub.
+        dataset = load_dataset(
+            args.dataset_name,
+            args.dataset_config_name,
+            cache_dir=args.cache_dir,
+        )
+    else:
+        data_files = {}
+        if args.train_data_dir is not None:
+            data_files["train"] = os.path.join(args.train_data_dir, "**")
+        dataset = load_dataset(
+            "imagefolder",
+            data_files=data_files,
+            cache_dir=args.cache_dir,
+        )
 
     # Preprocessing the datasets.
     # We need to tokenize inputs and targets.
@@ -1015,10 +1015,10 @@ def main():
         return examples
 
     with accelerator.main_process_first():
-        # if args.max_train_samples is not None:
-        #     dataset["train"] = dataset["train"].shuffle(seed=args.seed).select(range(args.max_train_samples))
+        if args.max_train_samples is not None:
+            dataset["train"] = dataset["train"].shuffle(seed=args.seed).select(range(args.max_train_samples))
         # Set the training transforms
-        train_dataset = dataset.with_transform(preprocess_train)
+        train_dataset = dataset["train"].with_transform(preprocess_train)
 
     def collate_fn(examples):
         original_pixel_values = torch.stack([example["original_pixel_values"] for example in examples])
