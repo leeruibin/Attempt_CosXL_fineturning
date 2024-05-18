@@ -1226,7 +1226,7 @@ def main():
                     original_pixel_values = batch["original_pixel_values"].to(dtype=weight_dtype)
                 else:
                     original_pixel_values = batch["original_pixel_values"]
-                original_image_embeds = vae.encode(original_pixel_values).latent_dist.sample()
+                original_image_embeds = vae.encode(original_pixel_values).latent_dist.sample() * vae.config.scaling_factor
                 if args.pretrained_vae_model_name_or_path is None:
                     original_image_embeds = original_image_embeds.to(weight_dtype)
 
