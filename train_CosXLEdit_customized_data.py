@@ -225,14 +225,6 @@ def parse_args():
         ),
     )
     parser.add_argument(
-        "--meta_path",
-        type=str,
-        default="/home/xlubl/Robin/data/Cox_inpainting/meta_train.info",
-        help=(
-            "The path for meta info about the dataset."
-        ),
-    )
-    parser.add_argument(
         "--dataset_config_name",
         type=str,
         default=None,
