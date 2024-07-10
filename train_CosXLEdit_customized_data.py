@@ -46,8 +46,6 @@ from torchvision import transforms
 from tqdm.auto import tqdm
 from transformers import AutoTokenizer, PretrainedConfig
 
-from utils.img_util import csv_to_dataset_format,meta_to_dataset_format
-
 import diffusers
 from diffusers import AutoencoderKL, DDPMScheduler, UNet2DConditionModel
 from diffusers.optimization import get_scheduler
@@ -134,14 +132,8 @@ def log_validation(pipeline, args, accelerator, generator, global_step, epoch, i
 
     for tracker in accelerator.trackers:
         if tracker.name == "wandb":
-            # wandb_table = wandb.Table(columns=WANDB_TABLE_COL_NAMES)
-            # for edited_image in edited_images:
-            #     wandb_table.add_data(wandb.Image(original_image), wandb.Image(edited_image), args.validation_prompt)
-            # wandb_table.add_data(wandb.Image(output_grid_image), f"step_{global_step}_ep_{epoch}_val")
-            # logger_name = "test" if is_final_validation else "validation"
             formatted_images = wandb.Image(output_grid_image, caption=f"epoch_{epoch}_step_{global_step}")
             tracker.log({"validation": formatted_images})
-            # tracker.log({logger_name: wandb_table})
 
 
 def import_model_class_from_model_name_or_path(
@@ -261,11 +253,11 @@ def parse_args():
     parser.add_argument(
         "--val_image_url_or_path",
         type=str,
-        default=["dataloader/cup.jpg","dataloader/cup.jpg","dataloader/human.jpg"],
+        default=["preset/cup.jpg","preset/cup.jpg"],
         help="URL to the original image that you would like to edit (used during inference for debugging purposes).",
     )
     parser.add_argument(
-        "--validation_prompt", type=str, default=["change to a red cup","remove the cup","remove the human"], help="A prompt that is sampled during training for inference."
+        "--validation_prompt", type=str, default=["change to a red cup","remove the cup"], help="A prompt that is sampled during training for inference."
     )
     parser.add_argument(
         "--num_validation_images",
@@ -744,7 +736,7 @@ def main():
 
     # Preprocessing the datasets.
     # We need to tokenize inputs and targets.
-    column_names = dataset.column_names
+    column_names = dataset.column_names['train']
 
     # 6. Get the column names for input/target.
     # dataset_columns = DATASET_NAME_MAPPING.get(args.dataset_name, None)
